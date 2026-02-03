@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include"drivetrain.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,7 +42,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+TIM_HandleTypeDef htim1; // PWM
+TIM_HandleTypeDef htim2; // Encoder Left
+TIM_HandleTypeDef htim3; // Encoder Right
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -73,29 +75,43 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  /* USER CODE BEGIN 2 */
+  MX_GPIO_Init();
+  MX_TIM1_Init();   // PWM
+  MX_TIM2_Init();   // Encoder Left
+  MX_TIM3_Init();   // Encoder Right
 
+  /* USER CODE BEGIN 2 */
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); // PWMA
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4); // PWMB
+
+  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
+	  MotorA_Set(400);
+	  MotorB_Set(400);
+	  HAL_Delay(2000);
 
-    /* USER CODE BEGIN 3 */
+	  MotorA_Set(-400);
+	  MotorB_Set(-400);
+	  HAL_Delay(2000);
   }
+  /* USER CODE END WHILE */
+
+  /* USER CODE BEGIN 3 */
   /* USER CODE END 3 */
 }
 
