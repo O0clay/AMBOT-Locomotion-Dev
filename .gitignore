@@ -1,16 +1,51 @@
-# Build output
+# ==============================
+# STM32CubeIDE Project
+# ==============================
+
+# Build output folders
 Debug/
 Release/
+build/
+
+# Object files
+*.o
+*.d
+*.su
+*.map
 *.elf
 *.bin
-*.map
+*.hex
+*.list
+*.lst
 
-# CubeIDE / Eclipse junk
+# CubeIDE settings
 .settings/
 .metadata/
-.build/
-*.launch
 
-# OS junk
+# Eclipse temporary files
+*.log
+*.tmp
+
+# STM32Cube auto-generated backup files
+*.bak
+*.orig
+
+# CubeMX generated linker backup files
+*_FLASH.ld
+*_RAM.ld
+
+# CMSIS & toolchain generated
+*.axf
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# VS Code (if anyone opens uses it)
+.vscode/
+
+# Linux
+*~
+
+# Windows
+*.exe
