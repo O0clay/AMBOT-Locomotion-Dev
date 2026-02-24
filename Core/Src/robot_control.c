@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "robot_control.h"
 #include "motor.h"
 #include "encoder.h"
@@ -38,7 +39,7 @@ void RobotControl_Init(void)
     HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
 }
 
-void RobotControl_SetTarget(int16_t left, int16_t right)
+void RobotControl_SetTarget(uint16_t left, uint16_t right)
 {
     targetLeft = left;
     targetRight = right;
