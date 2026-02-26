@@ -1,33 +1,35 @@
 #include "motor.h"
+#include "main.h"  // gives access to htim1, GPIO defines
 
-void Motor_Init(Motor_t *motor,
-                TIM_HandleTypeDef *htim,
-                uint32_t channel,
-                GPIO_TypeDef *dir_port,
-                uint16_t dir_pin,
-                int16_t max_pwm)
-{
-    motor->htim_pwm = htim;
-    motor->channel = channel;
-    motor->dir_port = dir_port;
-    motor->dir_pin = dir_pin;
-    motor->max_pwm = max_pwm;
+extern TIM_HandleTypeDef htim1;
+
+// Adjust these GPIO port/pin defines to match your CubeMX config
+#define MOTOR1_DIR_PORT   GPIOA
+#define MOTOR1_DIR_PIN    GPIO_PIN_9
+#define MOTOR2_DIR_PORT   GPIOB
+#define MOTOR2_DIR_PIN    GPIO_PIN_0
+
+void Motor_Init(void) {
+    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+    Motor_StopAll();
 }
 
-void Motor_SetSpeed(Motor_t *motor, int16_t speed)
-{
-    if (speed >= 0)
-    {
-        HAL_GPIO_WritePin(motor->dir_port, motor->dir_pin, GPIO_PIN_SET);
-    }
-    else
-    {
-        HAL_GPIO_WritePin(motor->dir_port, motor->dir_pin, GPIO_PIN_RESET);
-        speed = -speed;
-    }
+void Motor1_Set(uint8_t dir, uint8_t speed) {
+    HAL_GPIO_WritePin(MOTOR1_DIR_PORT, MOTOR1_DIR_PIN,
+                      dir ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    uint32_t pulse = ((uint32_t)speed * PWM_MAX) / 100;
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse);
+}
 
-    if (speed > motor->max_pwm)
-        speed = motor->max_pwm;
+void Motor2_Set(uint8_t dir, uint8_t speed) {
+    HAL_GPIO_WritePin(MOTOR2_DIR_PORT, MOTOR2_DIR_PIN,
+                      dir ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    uint32_t pulse = ((uint32_t)speed * PWM_MAX) / 100;
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pulse);
+}
 
-    __HAL_TIM_SET_COMPARE(motor->htim_pwm, motor->channel, speed);
+void Motor_StopAll(void) {
+    Motor1_Set(0, 0);
+    Motor2_Set(0, 0);
 }

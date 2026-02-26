@@ -1,60 +1,45 @@
 #include "pid.h"
 
-void PID_Init(PID_t *pid,
-              float kp,
-              float ki,
-              float kd,
-              float outMin,
-              float outMax)
-{
-    pid->Kp = kp;
-    pid->Ki = ki;
-    pid->Kd = kd;
-
-    pid->integrator = 0.0f;
-    pid->prevError = 0.0f;
-
-    pid->outMin = outMin;
-    pid->outMax = outMax;
+void PID_Init(PID_t *pid, float kp, float ki, float kd,
+              float out_min, float out_max) {
+    pid->kp = kp;
+    pid->ki = ki;
+    pid->kd = kd;
+    pid->output_min = out_min;
+    pid->output_max = out_max;
+    PID_Reset(pid);
 }
 
-float PID_Compute(PID_t *pid,
-                  float setpoint,
-                  float measurement,
-                  float dt)
-{
-    float error = setpoint - measurement;
+void PID_SetTarget(PID_t *pid, float setpoint) {
+    pid->setpoint = setpoint;
+}
 
-    float proportional = pid->Kp * error;
+float PID_Update(PID_t *pid, float measured, float dt) {
+    float error = pid->setpoint - measured;
 
-    float newIntegrator = pid->integrator + error * dt;
-    float integral = pid->Ki * newIntegrator;
+    pid->integral += error * dt;
 
-    float derivative = pid->Kd * (error - pid->prevError) / dt;
+    // Anti-windup: clamp integral contribution
+    float integral_clamp = pid->output_max / (pid->ki > 0 ? pid->ki : 1.0f);
+    if (pid->integral >  integral_clamp) pid->integral =  integral_clamp;
+    if (pid->integral < -integral_clamp) pid->integral = -integral_clamp;
 
-    float output = proportional + integral + derivative;
+    float derivative = (error - pid->prev_error) / dt;
+    pid->prev_error = error;
 
-    // Anti-windup clamp
-    if (output > pid->outMax)
-    {
-        output = pid->outMax;
-    }
-    else if (output < pid->outMin)
-    {
-        output = pid->outMin;
-    }
-    else
-    {
-        pid->integrator = newIntegrator;
-    }
+    float output = (pid->kp * error)
+                 + (pid->ki * pid->integral)
+                 + (pid->kd * derivative);
 
-    pid->prevError = error;
+    // Clamp output
+    if (output >  pid->output_max) output =  pid->output_max;
+    if (output < -pid->output_min) output = -pid->output_min;  // note: min is positive, represents magnitude
 
     return output;
 }
 
-void PID_Reset(PID_t *pid)
-{
-    pid->integrator = 0.0f;
-    pid->prevError = 0.0f;
+void PID_Reset(PID_t *pid) {
+    pid->integral = 0.0f;
+    pid->prev_error = 0.0f;
+    pid->setpoint = 0.0f;
 }

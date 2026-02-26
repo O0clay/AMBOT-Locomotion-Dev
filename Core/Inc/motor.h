@@ -4,25 +4,14 @@
 #include "stm32g4xx_hal.h"
 #include <stdint.h>
 
-typedef struct
-{
-    TIM_HandleTypeDef *htim_pwm;
-    uint32_t channel;
+#define PWM_MAX 8499  // ARR value — adjust if you change timer config
 
-    GPIO_TypeDef *dir_port;
-    uint16_t dir_pin;
+// Call once in main after HAL init
+void Motor_Init(void);
 
-    int16_t max_pwm;
-
-} Motor_t;
-
-void Motor_Init(Motor_t *motor,
-                TIM_HandleTypeDef *htim,
-                uint32_t channel,
-                GPIO_TypeDef *dir_port,
-                uint16_t dir_pin,
-                int16_t max_pwm);
-
-void Motor_SetSpeed(Motor_t *motor, int16_t speed);
+// dir: 1 = forward, 0 = backward | speed: 0–100%
+void Motor1_Set(uint8_t dir, uint8_t speed);
+void Motor2_Set(uint8_t dir, uint8_t speed);
+void Motor_StopAll(void);
 
 #endif

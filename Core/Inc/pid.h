@@ -1,32 +1,23 @@
 #ifndef PID_H
 #define PID_H
 
-typedef struct
-{
-    float Kp;
-    float Ki;
-    float Kd;
+typedef struct {
+    float kp;
+    float ki;
+    float kd;
 
-    float integrator;
-    float prevError;
+    float setpoint;
+    float integral;
+    float prev_error;
 
-    float outMin;
-    float outMax;
-
+    float output_min;
+    float output_max;
 } PID_t;
 
-void PID_Init(PID_t *pid,
-              float kp,
-              float ki,
-              float kd,
-              float outMin,
-              float outMax);
-
-float PID_Compute(PID_t *pid,
-                  float setpoint,
-                  float measurement,
-                  float dt);
-
+void PID_Init(PID_t *pid, float kp, float ki, float kd,
+              float out_min, float out_max);
+void PID_SetTarget(PID_t *pid, float setpoint);
+float PID_Update(PID_t *pid, float measured, float dt);
 void PID_Reset(PID_t *pid);
 
 #endif

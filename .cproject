@@ -163,14 +163,6 @@
 		<project id="AMBOT-Locomotion-V1.null.1525410761" name="AMBOT-Locomotion-V1"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.441364856;com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.441364856.;com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.769940846;com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.1914054935">
-			<autodiscovery enabled="false" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.release.392784914;com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.release.392784914.;com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.1739952619;com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.1205990892">
-			<autodiscovery enabled="false" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="scannerConfiguration"/>
 </cproject>

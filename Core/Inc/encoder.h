@@ -4,18 +4,17 @@
 #include "stm32g4xx_hal.h"
 #include <stdint.h>
 
-typedef struct
-{
-    TIM_HandleTypeDef *htim;
+// Pulses per revolution of your encoder — check your motor's datasheet
+#define ENCODER_PPR 1024
 
-    int32_t position;
-    int32_t velocity;
+void Encoder_Init(void);
 
-    int32_t last_count;
+// Raw counter values (resets on overflow — handle with delta reading)
+int32_t Encoder1_GetCount(void);
+int32_t Encoder2_GetCount(void);
 
-} Encoder_t;
-
-void Encoder_Init(Encoder_t *enc, TIM_HandleTypeDef *htim);
-void Encoder_Update(Encoder_t *enc);
+// Call this at a fixed interval (e.g. every 10ms) to get velocity in RPM
+float Encoder1_GetRPM(void);
+float Encoder2_GetRPM(void);
 
 #endif

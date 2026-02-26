@@ -18,7 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include "robot_control.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -107,6 +107,20 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  uint8_t cmd_byte;
+	  if (HAL_UART_Receive(&huart1, &cmd_byte, 1, 5) == HAL_OK) {
+	      switch(cmd_byte) {
+	          case 'W': Robot_SetCommand(CMD_FORWARD,  60); break;
+	          case 'S': Robot_SetCommand(CMD_BACKWARD, 60); break;
+	          case 'A': Robot_SetCommand(CMD_TURN_LEFT,  50); break;
+	          case 'D': Robot_SetCommand(CMD_TURN_RIGHT, 50); break;
+	          case 'X': Robot_SetCommand(CMD_STOP, 0);       break;
+	      }
+	  }
+	  // Update runs every loop — tie it to a 10ms HAL_GetTick check
+	  if (HAL_GetTick() % 10 == 0) {
+	      Robot_Update();
+	  }
   }
   /* USER CODE END 3 */
 }

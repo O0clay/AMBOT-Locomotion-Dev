@@ -1,65 +1,74 @@
-#include <stdint.h>
 #include "robot_control.h"
 #include "motor.h"
 #include "encoder.h"
 #include "pid.h"
-#include "main.h"
 
-extern TIM_HandleTypeDef htim1; // PWM
-extern TIM_HandleTypeDef htim2; // Left encoder
-extern TIM_HandleTypeDef htim3; // Right encoder
+// dt in seconds matching your SAMPLE_INTERVAL_MS
+#define DT 0.01f
 
-static Motor_t leftMotor;
-static Motor_t rightMotor;
+static PID_t pid_motor1;
+static PID_t pid_motor2;
+static RobotCommand_t current_cmd = CMD_STOP;
+static uint8_t current_speed = 0;
 
-static Encoder_t leftEnc;
-static Encoder_t rightEnc;
+void Robot_Init(void) {
+    Motor_Init();
+    Encoder_Init();
 
-static PID_t leftPID;
-static PID_t rightPID;
-
-static int16_t targetLeft = 0;
-static int16_t targetRight = 0;
-
-void RobotControl_Init(void)
-{
-    Motor_Init(&leftMotor, &htim1, TIM_CHANNEL_1, GPIOA, GPIO_PIN_0, 3599);
-    Motor_Init(&rightMotor, &htim1, TIM_CHANNEL_2, GPIOA, GPIO_PIN_1, 3599);
-
-    Encoder_Init(&leftEnc, &htim2);
-    Encoder_Init(&rightEnc, &htim3);
-
-    PID_Init(&leftPID, 1.0f, 0.5f, 0.01f, -3599, 3599);
-    PID_Init(&rightPID, 1.0f, 0.5f, 0.01f, -3599, 3599);
-
-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-
-    HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
-    HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+    // Tune these KP/KI/KD values experimentally — start with just Kp
+    PID_Init(&pid_motor1, 1.0f, 0.1f, 0.01f, 0.0f, 100.0f);
+    PID_Init(&pid_motor2, 1.0f, 0.1f, 0.01f, 0.0f, 100.0f);
 }
 
-void RobotControl_SetTarget(uint16_t left, uint16_t right)
-{
-    targetLeft = left;
-    targetRight = right;
+void Robot_SetCommand(RobotCommand_t cmd, uint8_t speed_percent) {
+    current_cmd = cmd;
+    current_speed = speed_percent;
+
+    float target = (float)speed_percent;  // target in % — maps to RPM once tuned
+
+    switch (cmd) {
+        case CMD_FORWARD:
+            PID_SetTarget(&pid_motor1, target);
+            PID_SetTarget(&pid_motor2, target);
+            break;
+        case CMD_BACKWARD:
+            PID_SetTarget(&pid_motor1, -target);
+            PID_SetTarget(&pid_motor2, -target);
+            break;
+        case CMD_TURN_LEFT:
+            PID_SetTarget(&pid_motor1, -target);
+            PID_SetTarget(&pid_motor2,  target);
+            break;
+        case CMD_TURN_RIGHT:
+            PID_SetTarget(&pid_motor1,  target);
+            PID_SetTarget(&pid_motor2, -target);
+            break;
+        case CMD_STOP:
+        default:
+            PID_SetTarget(&pid_motor1, 0.0f);
+            PID_SetTarget(&pid_motor2, 0.0f);
+            PID_Reset(&pid_motor1);
+            PID_Reset(&pid_motor2);
+            Motor_StopAll();
+            break;
+    }
 }
 
-void RobotControl_Update(float dt)
-{
-    Encoder_Update(&leftEnc);
-    Encoder_Update(&rightEnc);
+void Robot_Update(void) {
+    if (current_cmd == CMD_STOP) return;
 
-    float leftOutput = PID_Compute(&leftPID,
-                                   targetLeft,
-                                   leftEnc.velocity,
-                                   dt);
+    float rpm1 = Encoder1_GetRPM();
+    float rpm2 = Encoder2_GetRPM();
 
-    float rightOutput = PID_Compute(&rightPID,
-                                    targetRight,
-                                    rightEnc.velocity,
-                                    dt);
+    float out1 = PID_Update(&pid_motor1, rpm1, DT);
+    float out2 = PID_Update(&pid_motor2, rpm2, DT);
 
-    Motor_SetSpeed(&leftMotor, (int16_t)leftOutput);
-    Motor_SetSpeed(&rightMotor, (int16_t)rightOutput);
+    // out is signed: positive = forward, negative = backward
+    uint8_t dir1 = (out1 >= 0) ? 1 : 0;
+    uint8_t dir2 = (out2 >= 0) ? 1 : 0;
+    uint8_t spd1 = (uint8_t)(out1 < 0 ? -out1 : out1);
+    uint8_t spd2 = (uint8_t)(out2 < 0 ? -out2 : out2);
+
+    Motor1_Set(dir1, spd1);
+    Motor2_Set(dir2, spd2);
 }
